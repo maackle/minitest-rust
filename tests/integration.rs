@@ -7,7 +7,7 @@ struct Bar {
     s: String,
 }
 
-trait Common {
+trait Common: From<Foo> {
     fn num(&self) -> u8;
 }
 
@@ -25,6 +25,15 @@ impl Common for Bar {
 
 fn do_stuff<T: Common>(a: T, v: Vec<T>) -> u8 {
     a.num() + v.into_iter().map(|x| x.num()).sum::<u8>()
+}
+
+impl From<Foo> for Bar {
+    fn from(f: Foo) -> Self {
+        Bar {
+            x: f.0.into(),
+            s: "".to_string(),
+        }
+    }
 }
 
 #[multitest(td, Foo, Bar)]

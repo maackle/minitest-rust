@@ -1,7 +1,9 @@
-use proc_macro::{Group, Ident, TokenStream, TokenTree};
-use syn::{parse_macro_input, Item};
+use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, TokenStream, TokenTree};
+use proc_macro_error::proc_macro_error;
+use quote::{spanned::Spanned, ToTokens};
+use syn::{parse_macro_input, Attribute, Item, ItemFn};
 
-// #[proc_macro_error]
+#[proc_macro_error]
 #[proc_macro_attribute]
 pub fn multitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
     let mut it = attrs.into_iter();
@@ -29,32 +31,72 @@ pub fn multitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
         panic!("Third attribute argument must be the name of the real struct")
     }
 
-    let special = special.unwrap();
+    let special = special.unwrap().to_string();
+    let real_type = real_type.unwrap();
 
-    fn replace(ts: TokenStream, special: Ident) -> TokenStream {
+    fn replace(ts: TokenStream, special: String, replacement: Option<TokenTree>) -> TokenStream {
         ts.into_iter()
             .flat_map(|tt| match tt {
-                TokenTree::Ident(ref i) if i.to_string() == special.to_string() => None,
+                TokenTree::Ident(ref i) if i.to_string() == special => replacement.clone(),
                 TokenTree::Group(g) => Some(TokenTree::Group(Group::new(
                     g.delimiter(),
-                    replace(g.stream(), special.clone()),
+                    replace(g.stream(), special.clone(), replacement.clone()),
                 ))),
                 other => Some(other),
             })
             .collect()
     }
 
-    replace(input, special)
-    // let input = parse_macro_input!(input as Item);
+    let input = parse_macro_input!(input as Item);
 
-    // if let Item::Fn(mut f) = input {
-    //     quote::quote! {
-    //         f.block
-    //         #f
-    //     }
-    // } else {
-    //     panic!("mulitest must be applied to a function");
-    // }
+    if let Item::Fn(f) = input {
+        let mut fa = f.clone();
+        let mut fb = f.clone();
+        let test_body = replace(
+            f.block.clone().into_token_stream().into(),
+            special.clone(),
+            None,
+        );
+        let newname = Group::new(
+            Delimiter::Parenthesis,
+            [
+                TokenTree::Ident(real_type.clone()),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Ident(Ident::new("from", real_type.span())),
+            ]
+            .into_iter()
+            .collect(),
+        );
+        let real_body = replace(
+            f.block.into_token_stream().into(),
+            special,
+            Some(
+                TokenTree::Group(newname), // TokenTree::Ident(Ident::new(
+                                           //     &format!("{}::from", real_type.to_string()),
+                                           //     real_type.span(),
+                                           // )),
+            ),
+        );
+        let ident = f.sig.ident;
+        fa.sig.ident = syn::Ident::new(&format!("{}_test", ident.to_string()), ident.span());
+        fb.sig.ident = syn::Ident::new(&format!("{}_real", ident.to_string()), ident.span());
+
+        fa.block = Box::new(syn::parse2(test_body.into()).unwrap());
+        fb.block = Box::new(syn::parse2(real_body.into()).unwrap());
+        let out = quote::quote! {
+            #[test]
+            #fa
+
+            #[test]
+            #fb
+        };
+
+        dbg!(out.to_string());
+        out.into()
+    } else {
+        panic!("mulitest must be applied to a function");
+    }
     // .into()
     // let (ident, variants) = match &input {
     //     Item::Enum(ItemEnum {
