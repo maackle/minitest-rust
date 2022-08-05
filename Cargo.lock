@@ -3,6 +3,17 @@
 version = 3
 
 [[package]]
+name = "minitest"
+version = "0.1.0"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "reflect",
+ "syn",
+]
+
+[[package]]
 name = "proc-macro-error"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -85,17 +96,6 @@ checksum = "bd96f349c0da6811de8f0927d1e52b2a249da1c81fadad1f28e479b7e6a033bc"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
-]
-
-[[package]]
-name = "squash"
-version = "0.1.0"
-dependencies = [
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "reflect",
  "syn",
 ]
 

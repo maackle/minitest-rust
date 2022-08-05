@@ -5,7 +5,7 @@ use syn::{parse_macro_input, Attribute, Item, ItemFn};
 
 #[proc_macro_error]
 #[proc_macro_attribute]
-pub fn multitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
+pub fn minitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
     let mut it = attrs.into_iter();
     let mut special: Option<Ident> = None;
     let mut test_type: Option<Ident> = None;

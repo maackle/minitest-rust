@@ -1,4 +1,4 @@
-use squash::multitest;
+use minitest::minitest;
 
 struct Foo(pub u8);
 
@@ -36,8 +36,8 @@ impl From<Foo> for Bar {
     }
 }
 
-#[multitest(td, Foo, Bar)]
-fn testtest() {
+#[minitest(td, Foo, Bar)]
+fn this_expands() {
     let a = td(Foo(0));
     let v = vec![td(Foo(1)), td(Foo(2))];
     assert_eq!(do_stuff(a, v), 3);
