@@ -16,7 +16,7 @@ pub fn minitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
     } else {
         panic!("First attribute argument must be the name of the replacement fn")
     }
-    let _comma = it.next().unwrap();
+    let _comma = it.next().expect("minitest must have two arguments");
 
     if let Some(TokenTree::Ident(i)) = it.next() {
         real_type = Some(i);
@@ -24,8 +24,10 @@ pub fn minitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
         panic!("Second attribute argument must be the name of the real struct")
     }
 
-    let special = special.unwrap().to_string();
-    let real_type = real_type.unwrap();
+    let special = special
+        .expect("minitest must have two arguments")
+        .to_string();
+    let real_type = real_type.expect("minitest must have two arguments");
 
     fn replace(ts: TokenStream, special: String, replacement: Option<TokenTree>) -> TokenStream {
         ts.into_iter()
@@ -75,8 +77,8 @@ pub fn minitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
         fa.sig.ident = syn::Ident::new(&format!("{}_test", ident.to_string()), ident.span());
         fb.sig.ident = syn::Ident::new(&format!("{}_real", ident.to_string()), ident.span());
 
-        fa.block = Box::new(syn::parse2(test_body.into()).unwrap());
-        fb.block = Box::new(syn::parse2(real_body.into()).unwrap());
+        fa.block = Box::new(syn::parse2(test_body.into()).expect("could not parse test body"));
+        fb.block = Box::new(syn::parse2(real_body.into()).expect("could not parse real body"));
         let out = quote::quote! {
             #[test]
             #fa
