@@ -36,7 +36,7 @@ impl From<Foo> for Bar {
     }
 }
 
-#[minitest(td, Foo, Bar)]
+#[minitest(td, Bar)]
 fn this_expands() {
     let a = td(Foo(0));
     let v = vec![td(Foo(1)), td(Foo(2))];

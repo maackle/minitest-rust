@@ -19,16 +19,9 @@ pub fn minitest(attrs: TokenStream, input: TokenStream) -> TokenStream {
     let _comma = it.next().unwrap();
 
     if let Some(TokenTree::Ident(i)) = it.next() {
-        test_type = Some(i);
-    } else {
-        panic!("Second attribute argument must be the name of the test struct")
-    }
-    let _comma = it.next().unwrap();
-
-    if let Some(TokenTree::Ident(i)) = it.next() {
         real_type = Some(i);
     } else {
-        panic!("Third attribute argument must be the name of the real struct")
+        panic!("Second attribute argument must be the name of the real struct")
     }
 
     let special = special.unwrap().to_string();
